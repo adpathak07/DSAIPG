@@ -25,6 +25,8 @@ public class Timer {
      * @param <T>      the type supplied by function (amy be Void).
      * @return the average milliseconds per repetition.
      */
+	
+	/*
     public <T> double repeat(int n, Supplier<T> function) {
         for (int i = 0; i < n; i++) {
             function.get();
@@ -35,7 +37,41 @@ public class Timer {
         resume();
         return result;
     }
+    */
+	
+	
+    
+    public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, 
+            UnaryOperator<T> preFunction, Consumer<U> postFunction) {
+logger.trace("repeat with " + n + " runs");
 
+for (int i = 0; i < n; i++) {
+pause();
+T t = supplier.get();
+
+if (preFunction != null) {
+t = preFunction.apply(t);
+}
+
+resume();
+U u = function.apply(t);
+pauseAndLap();
+
+if (postFunction != null) {
+postFunction.accept(u);
+}
+
+resume();
+}
+
+pause();
+return meanLapTime();
+}
+   
+    
+    
+    
+    
     /**
      * Run the given functions n times, once per "lap" and then return the mean lap time.
      *
