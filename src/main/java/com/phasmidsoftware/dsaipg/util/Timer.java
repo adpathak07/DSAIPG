@@ -26,19 +26,7 @@ public class Timer {
      * @return the average milliseconds per repetition.
      */
 	
-	/*
-    public <T> double repeat(int n, Supplier<T> function) {
-        for (int i = 0; i < n; i++) {
-            function.get();
-            lap();
-        }
-        pause();
-        final double result = meanLapTime();
-        resume();
-        return result;
-    }
-    */
-	
+
 	
     
     public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, 
