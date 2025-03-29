@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2024. Robin Hillyard
- */
-
+* Copyright (c) 2024. Robin Hillyard
+*/
+ 
 package com.phasmidsoftware.dsaipg.sort.par;
-
+ 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-
+ 
 /**
- * ParSort is a class implementing a parallel sorting algorithm.
- * The sorting is executed using a fork-and-join approach,
- * where large arrays are divided into smaller portions and sorted concurrently.
- * Designed to optimize performance for sorting large integer arrays.
- * This code has been fleshed out by...
- * @author Ziyao Qiao. Thanks very much.
- */
+* ParSort is a class implementing a parallel sorting algorithm.
+* The sorting is executed using a fork-and-join approach,
+* where large arrays are divided into smaller portions and sorted concurrently.
+* Designed to optimize performance for sorting large integer arrays.
+* This code has been fleshed out by...
+* @author Ziyao Qiao. Thanks very much.
+*/
 final class ParSort {
-
+ 
     /**
      * Specifies the cutoff value used to determine when to switch from parallel sorting
      * to single-threaded sorting. If the size of the range to be sorted is smaller than
@@ -26,7 +26,7 @@ final class ParSort {
      * the advantages of parallelism.
      */
     public static int cutoff = 1000;
-
+ 
     /**
      * Sorts the specified portion of the input array using a parallel sorting algorithm.
      * If the range to be sorted is smaller than a predefined cutoff value, the method
@@ -40,17 +40,28 @@ final class ParSort {
      */
     public static void sort(int[] array, int from, int to) {
         if (to - from >= cutoff) {
-            CompletableFuture<int[]> completableFuture1 = null;
-            CompletableFuture<int[]> completableFuture2 = null;
-            // TO BE IMPLEMENTED 
-            // END SOLUTION
+            int mid = from + (to - from) / 2;
+    
+            // Sort two halves asynchronously
+            CompletableFuture<int[]> completableFuture1 = asyncSort(array, from, mid);
+            CompletableFuture<int[]> completableFuture2 = asyncSort(array, mid, to);
+    
             CompletableFuture<int[]> completableFuture = completableFuture1.thenCombine(completableFuture2, ParSort::doMerge);
-            completableFuture.whenComplete((result, throwable) -> System.arraycopy(result, 0, array, from, result.length));
+            
+            completableFuture.whenComplete((result, throwable) -> {
+                if (throwable == null) {
+                    System.arraycopy(result, 0, array, from, result.length);
+                } else {
+                    throwable.printStackTrace();
+                }
+            });
+    
             completableFuture.join();
-        } else
+        } else {
             Arrays.sort(array, from, to);
+        }
     }
-
+    
     /**
      * Recursively sorts a specified portion of the input array and returns a new sorted array.
      * This method extracts the specified range, sorts it using a defined sorting mechanism,
@@ -62,13 +73,21 @@ final class ParSort {
      * @return a new sorted array containing the elements from the specified range of the input array
      */
     static int[] sortRecursive(int[] array, int from, int to) {
-        int[] result = new int[to - from];
-        // TO BE IMPLEMENTED 
-         // NOTE you need to do something here so that result is the sorted version of array.
-        // END SOLUTION
-        return result;
+        int[] result = Arrays.copyOfRange(array, from, to);
+        
+        if (to - from > cutoff) {
+            int mid = (to - from) / 2;
+            
+            int[] leftSorted = sortRecursive(result, 0, mid);
+            int[] rightSorted = sortRecursive(result, mid, result.length);
+            
+            return doMerge(leftSorted, rightSorted);
+        } else {
+            Arrays.sort(result);
+            return result;
+        }
     }
-
+ 
     /**
      * Merges two sorted arrays into a single sorted array.
      * The method assumes that both input arrays are already sorted in ascending order,
@@ -90,7 +109,7 @@ final class ParSort {
         }
         return result;
     }
-
+ 
     /**
      * Asynchronously sorts the specified portion of the input array using a parallel sorting algorithm.
      * This method extracts a subsection of the given array, sorts it, and returns a CompletableFuture
