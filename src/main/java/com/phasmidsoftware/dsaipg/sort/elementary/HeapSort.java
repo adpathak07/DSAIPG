@@ -1,28 +1,24 @@
-/*
- * Copyright (c) 2024. Robin Hillyard
- */
-
 package com.phasmidsoftware.dsaipg.sort.elementary;
-
+ 
 import com.phasmidsoftware.dsaipg.sort.Helper;
 import com.phasmidsoftware.dsaipg.sort.SortWithComparableHelper;
 import com.phasmidsoftware.dsaipg.util.Config;
-
+ 
 /**
- * Implementation of the Heap Sort algorithm for sorting an array of elements that implement the Comparable interface.
- * Heap Sort is an in-place, comparison-based sorting algorithm that uses a binary heap data structure.
- * <p>
- * The algorithm consists of two main phases:
- * 1. Construction phase: The input array is transformed into a max-heap.
- * 2. Sort-down phase: The largest element is repeatedly removed from the heap and placed at the end of the array,
- * while the remaining heap is restored as a max-heap.
- * <p>
- * This class extends SortWithComparableHelper and provides specific sorting logic using the heap structure.
- *
- * @param <X> The type of the elements to be sorted, which must extend Comparable.
- */
+* Implementation of the Heap Sort algorithm for sorting an array of elements that implement the Comparable interface.
+* Heap Sort is an in-place, comparison-based sorting algorithm that uses a binary heap data structure.
+* <p>
+* The algorithm consists of two main phases:
+* 1. Construction phase: The input array is transformed into a max-heap.
+* 2. Sort-down phase: The largest element is repeatedly removed from the heap and placed at the end of the array,
+* while the remaining heap is restored as a max-heap.
+* <p>
+* This class extends SortWithComparableHelper and provides specific sorting logic using the heap structure.
+*
+* @param <X> The type of the elements to be sorted, which must extend Comparable.
+*/
 public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<X> {
-
+ 
     /**
      * Constructor for the HeapSort class.
      * Initializes the HeapSort algorithm with a helper instance.
@@ -34,7 +30,7 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
     public HeapSort(Helper<X> helper) {
         super(helper);
     }
-
+ 
     /**
      * Constructs a HeapSort instance with the specified number of words and configuration settings.
      * This constructor allows configuring the HeapSort with specific parameters such as the number
@@ -46,7 +42,7 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
     public HeapSort(int nWords, Config config) {
         super(DESCRIPTION, nWords, 1, config);
     }
-
+ 
     /**
      * Constructs a HeapSort instance with the specified number of words, number of runs, and configuration settings.
      * This constructor is used to configure and initialize the HeapSort algorithm with detailed parameters.
@@ -58,7 +54,7 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
     public HeapSort(int nWords, int nRuns, Config config) {
         super(DESCRIPTION, nWords, nRuns, config);
     }
-
+ 
     /**
      * Sorts the specified portion of the array using the heap sort algorithm.
      * The method first constructs a max heap and then sorts the elements by repeatedly
@@ -73,19 +69,18 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
      */
     public void sort(X[] array, int from, int to) {
         if (array == null || array.length <= 1) return;
-
-        // XXX construction phase
+ 
+        // Construction phase: Build a max heap
         buildMaxHeap(array);
-
-        // XXX sort-down phase
+ 
+        // Sort-down phase: Move the largest element to the end, and restore the heap
         Helper<X> helper = getHelper();
-        // TODO we over-count hits in the swap operation -- fix it.
         for (int i = array.length - 1; i >= 1; i--) {
-            helper.swap(array, 0, i);
-            heapify(array, i, 0);
+            helper.swap(array, 0, i); // Swap the root (max element) with the last element
+            heapify(array, i, 0); // Restore the heap property for the reduced heap
         }
     }
-
+ 
     /**
      * Builds a max heap from the given array. The method adjusts the input array
      * such that it satisfies the properties of a max heap, where each parent node
@@ -96,10 +91,12 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
      *              should support comparison.
      */
     private void buildMaxHeap(X[] array) {
-        int half = array.length / 2;
-        for (int i = half; i >= 0; i--) heapify(array, array.length, i);
+        int half = array.length / 2; // Start with the last parent node
+        for (int i = half; i >= 0; i--) {
+            heapify(array, array.length, i); // Ensure max-heap property for each subtree
+        }
     }
-
+ 
     /**
      * Maintains the max-heap property for the given array. This method assumes that the binary trees rooted at the left
      * and right children of the index satisfy the max-heap property, but the node at the given index may violate this
@@ -113,19 +110,24 @@ public class HeapSort<X extends Comparable<X>> extends SortWithComparableHelper<
      *                 subtree rooted at this index satisfies the max-heap property upon completion.
      */
     private void heapify(X[] array, int heapSize, int index) {
-        // TODO we over-count hits in the swap operation -- fix it.
         Helper<X> helper = getHelper();
         final int left = index * 2 + 1;
         final int right = index * 2 + 2;
         int largest = index;
+ 
+        // Check if left child exists and is larger than root
         if (left < heapSize && helper.compare(array, largest, left) < 0) largest = left;
+ 
+        // Check if right child exists and is larger than root (or left child)
         if (right < heapSize && helper.compare(array, largest, right) < 0) largest = right;
+ 
+        // If the largest is not the current index, swap and continue heapifying
         if (index != largest) {
             helper.swap(array, index, largest);
-            heapify(array, heapSize, largest);
+            heapify(array, heapSize, largest); // Recursively heapify the affected subtree
         }
     }
-
+ 
     public static final String DESCRIPTION = "Heap Sort";
-
+ 
 }
